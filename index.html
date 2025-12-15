@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maritime Science Hub</title>
+  <meta name="description" content="导航 + 分类分区；仅长文字折叠；Tableau/ArcGIS iframe 默认展开。" />
+
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1020;
+      --card: rgba(255,255,255,.07);
+      --card2: rgba(255,255,255,.10);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --accent: #7C5CFF;
+      --accent2:#20E3B2;
+      --warn:#FFB020;
+      --shadow: 0 18px 70px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius2: 26px;
+      --maxw: 1200px;
+      --sidebar: 320px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(124,92,255,.35), transparent 60%),
+        radial-gradient(800px 500px at 80% 20%, rgba(32,227,178,.28), transparent 55%),
+        radial-gradient(900px 700px at 50% 95%, rgba(255,176,32,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    a{color:inherit}
+    .wrap{
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 28px 18px 80px;
+    }
+
+    /* Top header */
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index: 40;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(7,10,18,.78), rgba(7,10,18,.35));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .topbar .wrap{
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      gap: 12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 220px;
+    }
+    .logo{
+      width: 36px;height:36px;border-radius: 12px;
+      background: conic-gradient(from 210deg, var(--accent), var(--accent2), var(--warn), var(--accent));
+      box-shadow: 0 10px 35px rgba(124,92,255,.22);
+    }
+    .brand h1{
+      font-size: 16px;
+      margin:0;
+      letter-spacing:.2px;
+      line-height:1.1;
+    }
+    .brand p{
+      margin:2px 0 0;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+
+    .search{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      border-radius: 14px;
+      box-shadow: 0 8px 26px rgba(0,0,0,.18);
+    }
+    .search input{
+      width:100%;
+      border:0;
+      outline:0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      user-select:none;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+    .chip:hover{transform: translateY(-1px); background: rgba(255,255,255,.08);}
+
+    /* Layout */
+    .grid{
+      display:grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      gap: 18px;
+      align-items:start;
+      margin-top: 18px;
+    }
+
+    /* Sidebar nav */
+    .side{
+      position: sticky;
+      top: 74px;
+      align-self:start;
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .side .head{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .side .head .title{
+      display:flex;flex-direction:column;gap:2px;
+    }
+    .side .head .title strong{font-size:13px}
+    .side .head .title span{font-size:12px;color:var(--muted2)}
+    .nav{
+      padding: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      max-height: calc(100vh - 110px);
+      overflow:auto;
+    }
+    .nav a{
+      text-decoration:none;
+      padding: 10px 10px;
+      border-radius: 12px;
+      color: var(--muted);
+      border: 1px solid transparent;
+      background: transparent;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .nav a:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.10);
+      transform: translateX(1px);
+    }
+    .nav a.active{
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(124,92,255,.18), rgba(32,227,178,.10));
+      border-color: rgba(124,92,255,.35);
+    }
+    .nav small{color: var(--muted2); font-size: 12px}
+
+    /* Main */
+    .hero{
+      border-radius: var(--radius2);
+      background:
+        radial-gradient(600px 220px at 20% 20%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(600px 240px at 80% 30%, rgba(32,227,178,.16), transparent 60%),
+        rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .hero .inner{
+      padding: 18px 18px 16px;
+      display:flex;
+      gap: 14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .hero h2{margin:0;font-size:18px;letter-spacing:.2px}
+    .hero p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+    .cta{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:flex-end;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-size: 13px;
+      transition: transform .15s ease, background .15s ease;
+      text-decoration:none;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08);}
+    .btn.primary{
+      border-color: rgba(124,92,255,.35);
+      background: linear-gradient(135deg, rgba(124,92,255,.26), rgba(32,227,178,.14));
+    }
+
+    /* Sections */
+    section{
+      margin-top: 14px;
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .section-head{
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .section-head h3{
+      margin:0;
+      font-size: 15px;
+    }
+    .section-head p{
+      margin:6px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 90ch;
+    }
+
+    /* Cards */
+    .cards{
+      padding: 14px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .card{
+      grid-column: span 12;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      position:relative;
+    }
+    .card .card-head{
+      padding: 12px 12px 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .card .card-head strong{font-size: 13px}
+    .badge{
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+      user-select:none;
+    }
+    .card .body{padding: 12px;}
+    .muted{color:var(--muted); font-size: 13px; line-height:1.65}
+    .tiny{color:var(--muted2); font-size: 12px}
+    .sep{height:10px}
+
+    /* Long text (collapsible) */
+    details.longtext{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+      overflow:hidden;
+    }
+    details.longtext summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      user-select:none;
+    }
+    details.longtext summary::-webkit-details-marker{display:none}
+    details.longtext summary .left{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    details.longtext summary .left b{font-size:13px}
+    details.longtext summary .left span{font-size:12px;color:var(--muted2)}
+    details.longtext summary .right{
+      font-size:12px;
+      color: var(--muted);
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    details.longtext[open] summary .right{color: var(--text);}
+    details.longtext .content{
+      padding: 10px 12px 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    /* Iframes (always expanded) */
+    .iframe-wrap{
+      border-radius: 14px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+    }
+    iframe{
+      width:100%;
+      height: 520px;
+      border:0;
+      display:block;
+      background: rgba(0,0,0,.18);
+    }
+    .iframe-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+    }
+    .iframe-toolbar .left{display:flex; flex-direction:column; gap:2px;}
+    .iframe-toolbar .left b{font-size:13px}
+    .iframe-toolbar .left span{font-size:12px;color:var(--muted2)}
+    .iframe-toolbar .actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+    /* Responsive */
+    @media (max-width: 980px){
+      :root{--sidebar: 100%;}
+      .grid{grid-template-columns: 1fr;}
+      .side{position:relative; top:0;}
+      .topbar .wrap{flex-wrap:wrap;}
+      .brand{min-width:auto}
+    }
+
+    /* highlight for search */
+    mark{
+      background: rgba(32,227,178,.22);
+      color: var(--text);
+      padding: 0 .18em;
+      border-radius: .35em;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Maritime Science Hub</h1>
+          <p>导航 + 分类分区 · 长文字可折叠 · iframe 默认展开</p>
+        </div>
+      </div>
+
+      <div class="search" title="输入关键词过滤（仅前端过滤，不会提交到服务器）">
+        <span class="tiny">🔎</span>
+        <input id="q" type="search" placeholder="搜索模块：例如 Bayes / HFACS / ArcGIS / Tableau ..." />
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <span class="chip" id="expandAll">展开所有文字</span>
+        <span class="chip" id="collapseAll">折叠所有文字</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+
+      <!-- Sidebar -->
+      <aside class="side" aria-label="目录导航">
+        <div class="head">
+          <div class="title">
+            <strong>目录导航</strong>
+            <span>点击跳转 · 自动高亮</span>
+          </div>
+          <a class="btn" href="#top" style="padding:8px 10px;border-radius:12px;">⬆️ 顶部</a>
+        </div>
+
+        <nav class="nav" id="nav">
+          <a href="#sec-dashboard"><span>📊 可视化看板</span><small>Tableau / ArcGIS</small></a>
+          <a href="#sec-research"><span>🧠 研究与方法</span><small>HFACS / BN / 模型</small></a>
+          <a href="#sec-datasets"><span>🗂️ 数据与资源</span><small>数据库 / 文档</small></a>
+          <a href="#sec-notes"><span>📝 长文字说明</span><small>仅此类可折叠</small></a>
+          <a href="#sec-about"><span>✨ 关于本站</span><small>模块添加方式</small></a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main id="top">
+        <div class="hero">
+          <div class="inner">
+            <div>
+              <h2>绚丽展示感 + 不卡 iframe 的主架构</h2>
+              <p>
+                结构思路：左侧目录导航（主入口）+ 右侧分类分区（主内容）。
+                只有“长文字说明模块”使用折叠（details/summary），Tableau/ArcGIS 等 iframe 默认展开，避免折叠导致高度/交互异常。
+              </p>
+            </div>
+            <div class="cta">
+              <a class="btn primary" href="#sec-dashboard">🚀 进入看板</a>
+              <a class="btn" href="#sec-about">➕ 如何添加模块</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Dashboards -->
+        <section id="sec-dashboard" data-title="可视化看板">
+          <div class="section-head">
+            <div>
+              <h3>📊 可视化看板</h3>
+              <p>这里放 Tableau / ArcGIS / 其他嵌入式应用（iframe 默认展开，不折叠）。</p>
+            </div>
+            <span class="badge">iframe: always open</span>
+          </div>
+
+          <div class="cards">
+
+            <!-- Tableau iframe module -->
+            <article class="card module" data-tags="tableau dashboard 可视化">
+              <div class="card-head">
+                <strong>Tableau Dashboard</strong>
+                <span class="badge">Tableau</span>
+              </div>
+              <div class="body">
+                <div class="iframe-wrap">
+                  <div class="iframe-toolbar">
+                    <div class="left">
+                      <b>示例：你的 Tableau 看板</b>
+                      <span>把下面 iframe 的 src 换成你自己的分享链接</span>
+                    </div>
+                    <div class="actions">
+                      <a class="btn" href="#" onclick="openIframeNewTab(this); return false;">🗔 新标签打开</a>
+                    </div>
+                  </div>
+
+                  <!-- ✅ 把 src 替换为你的 Tableau embed 链接 -->
+                  <iframe
+                    data-newtab
+                    src="https://public.tableau.com/views/RegionalSampleWorkbook/College?:showVizHome=no"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+                <div class="sep"></div>
+                <div class="tiny">提示：Tableau Public 的 embed 通常用 “?:showVizHome=no”。如果你用的是私有 Tableau Server，确保访问权限与跨域设置允许嵌入。</div>
+              </div>
+            </article>
+
+            <!-- ArcGIS iframe module -->
+            <article class="card module" data-tags="arcgis map 地图 可视化">
+              <div class="card-head">
+                <strong>ArcGIS Web Map / App</strong>
+                <span class="badge">ArcGIS</span>
+              </div>
+              <div class="body">
+                <div class="iframe-wrap">
+                  <div class="iframe-toolbar">
+                    <div class="left">
+                      <b>示例：你的 ArcGIS 应用</b>
+                      <span>把 iframe 的 src 换成 ArcGIS 分享出来的 Embed 链接</span>
+                    </div>
+                    <div class="actions">
+                      <a class="btn" href="#" onclick="openIframeNewTab(this); return false;">🗔 新标签打开</a>
+                    </div>
+                  </div>
+
+                  <!-- ✅ 把 src 替换为你的 ArcGIS embed 链接 -->
+                  <iframe
+                    data-newtab
+                    src="https://www.arcgis.com/apps/instant/basic/index.html?appid=2b1b0db02b7b4a2e9a2a9e3c2f0a6b2a"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+                <div class="sep"></div>
+                <div class="tiny">提示：如果 ArcGIS 要求登录或阻止嵌入，你需要开启公开访问或使用可嵌入的应用类型。</div>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- Section: Research -->
+        <section id="sec-research" data-title="研究与方法">
+          <div class="section-head">
+            <div>
+              <h3>🧠 研究与方法</h3>
+              <p>这里放短说明、链接卡片、方法概览等（不需要折叠的内容）。</p>
+            </div>
+            <span class="badge">cards</span>
+          </div>
+
+          <div class="cards">
+            <article class="card module" data-tags="hfacs ship bridge collision 人因">
+              <div class="card-head">
+                <strong>HFACS：事故致因框架</strong>
+                <span class="badge">Method</span>
+              </div>
+              <div class="body">
+                <div class="muted">
+                  用分层的人因模型组织“操作员—监督—组织—外部因素”等致因，适合做桥碰、搁浅等事故链条梳理。
+                  这里建议放：概念图 + 你的论文/笔记链接。
+                </div>
+                <div class="sep"></div>
+                <a class="btn" href="#sec-notes">📌 去看“长文字说明（可折叠）”模板</a>
+              </div>
+            </article>
+
+            <article class="card module" data-tags="bayesian network 风险 建模">
+              <div class="card-head">
+                <strong>Bayesian Network：风险推断</strong>
+                <span class="badge">Model</span>
+              </div>
+              <div class="body">
+                <div class="muted">
+                  适合把环境、设备、人为、组织因素与事故后果连起来做推断与敏感性分析。
+                  可在此放：节点图、数据来源、代码仓库链接等。
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Section: Datasets -->
+        <section id="sec-datasets" data-title="数据与资源">
+          <div class="section-head">
+            <div>
+              <h3>🗂️ 数据与资源</h3>
+              <p>这里放资源链接（数据库、规范、资料库入口），让访问者快速找到东西。</p>
+            </div>
+            <span class="badge">links</span>
+          </div>
+
+          <div class="cards">
+            <article class="card module" data-tags="dataset 数据库 resources">
+              <div class="card-head">
+                <strong>资源入口（示例）</strong>
+                <span class="badge">Resources</span>
+              </div>
+              <div class="body">
+                <div class="muted">
+                  你可以把每条资源做成一个按钮：
+                </div>
+                <div class="sep"></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <a class="btn" href="#" target="_blank" rel="noreferrer">🔗 Arctic Accident Dataset</a>
+                  <a class="btn" href="#" target="_blank" rel="noreferrer">🔗 IMO / Class MASS Docs</a>
+                  <a class="btn" href="#" target="_blank" rel="noreferrer">🔗 Oil Spill Database</a>
+                </div>
+                <div class="sep"></div>
+                <div class="tiny">把按钮的 href 换成你的真实链接即可。</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Section: Long text (collapsible only here) -->
+        <section id="sec-notes" data-title="长文字说明">
+          <div class="section-head">
+            <div>
+              <h3>📝 长文字说明（仅此类折叠）</h3>
+              <p>用 details/summary 来折叠长文本，避免页面过长；iframe 不参与折叠。</p>
+            </div>
+            <span class="badge">collapsible</span>
+          </div>
+
+          <div class="cards">
+            <article class="card module" data-tags="说明 长文字 notes">
+              <div class="card-head">
+                <strong>长文字说明模块模板</strong>
+                <span class="badge">details</span>
+              </div>
+              <div class="body">
+                <!-- ✅ 只有这一类用 details 折叠 -->
+                <details class="longtext">
+                  <summary>
+                    <div class="left">
+                      <b>点击展开：这里放很长很长的解释</b>
+                      <span>例如：方法论、项目背景、假设、术语说明…</span>
+                    </div>
+                    <div class="right">展开 / 折叠</div>
+                  </summary>
+
+                  <div class="content">
+                    <div class="muted">
+                      这里是长文本内容区域。你可以写很多段：<br><br>
+                      - 第一段：背景介绍……<br>
+                      - 第二段：关键概念……<br>
+                      - 第三段：使用说明……<br><br>
+                      也可以插入图片、列表、引用、甚至代码块（用 &lt;pre&gt;&lt;code&gt;...）。
+                    </div>
+
+                    <div class="sep"></div>
+                    <pre style="margin:0; padding:12px; border-radius:14px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10); overflow:auto;"><code>// 示例：把“长文字”放这里
+// iframe（Tableau/ArcGIS）不要放在 details 里面！</code></pre>
+                  </div>
+                </details>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- About -->
+        <section id="sec-about" data-title="关于本站">
+          <div class="section-head">
+            <div>
+              <h3>✨ 关于本站 / 如何不断添加模块</h3>
+              <p>你只需要复制一个“卡片模块”，改标题、标签和内容，即可不断扩展。建议：一个模块=一个 card。</p>
+            </div>
+            <span class="badge">easy to extend</span>
+          </div>
+
+          <div class="cards">
+            <article class="card module" data-tags="howto 模块 添加">
+              <div class="card-head">
+                <strong>添加新模块：复制粘贴这段结构</strong>
+                <span class="badge">Template</span>
+              </div>
+              <div class="body">
+                <div class="muted">
+                  你要加新内容时，按下面逻辑：
+                  <br>1）决定放到哪个 Section（分类分区）
+                  <br>2）复制一个 &lt;article class="card"&gt;...&lt;/article&gt;
+                  <br>3）如果是 iframe：用 <b>iframe-wrap</b>（默认展开）
+                  <br>4）如果是长文字：用 <b>details.longtext</b>（可折叠）
+                </div>
+                <div class="sep"></div>
+                <pre style="margin:0; padding:12px; border-radius:14px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10); overflow:auto;"><code>&lt;article class="card module" data-tags="关键词1 关键词2"&gt;
+  &lt;div class="card-head"&gt;
+    &lt;strong&gt;模块标题&lt;/strong&gt;
+    &lt;span class="badge"&gt;标签&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class="body"&gt;
+    &lt;!-- 短内容：直接写 --&gt;
+    &lt;div class="muted"&gt;这里写简介…&lt;/div&gt;
+
+    &lt;!-- 长文字：用 details.longtext（可折叠） --&gt;
+    &lt;details class="longtext"&gt;...&lt;/details&gt;
+
+    &lt;!-- iframe：不要放到 details 里（默认展开） --&gt;
+    &lt;div class="iframe-wrap"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/article&gt;</code></pre>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <div style="margin-top:16px; color:var(--muted2); font-size:12px; text-align:center;">
+          © <span id="year"></span> Maritime Science Hub · Built for GitHub Pages
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Smooth scroll for in-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const id = a.getAttribute('href');
+        if(!id || id === '#') return;
+        const el = document.querySelector(id);
+        if(el){
+          e.preventDefault();
+          el.scrollIntoView({behavior:'smooth', block:'start'});
+          history.pushState(null, '', id);
+        }
+      });
+    });
+
+    // Scrollspy: highlight active section in sidebar
+    const navLinks = Array.from(document.querySelectorAll('#nav a'));
+    const sections = navLinks
+      .map(a => document.querySelector(a.getAttribute('href')))
+      .filter(Boolean);
+
+    const io = new IntersectionObserver((entries)=>{
+      const visible = entries
+        .filter(en => en.isIntersecting)
+        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if(!visible) return;
+
+      const id = '#' + visible.target.id;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+    }, { rootMargin: "-20% 0px -70% 0px", threshold: [0.05, 0.15, 0.3, 0.6] });
+
+    sections.forEach(sec => io.observe(sec));
+
+    // Only expand/collapse long text modules (details.longtext)
+    const expandAllBtn = document.getElementById('expandAll');
+    const collapseAllBtn = document.getElementById('collapseAll');
+
+    expandAllBtn.addEventListener('click', ()=>{
+      document.querySelectorAll('details.longtext').forEach(d => d.open = true);
+    });
+    collapseAllBtn.addEventListener('click', ()=>{
+      document.querySelectorAll('details.longtext').forEach(d => d.open = false);
+    });
+
+    // Search filter: filters .module by text + data-tags
+    const q = document.getElementById('q');
+    const modules = Array.from(document.querySelectorAll('.module'));
+
+    function norm(s){ return (s||'').toLowerCase().trim(); }
+
+    q.addEventListener('input', ()=>{
+      const term = norm(q.value);
+      modules.forEach(m=>{
+        const hay = norm(m.innerText + ' ' + (m.getAttribute('data-tags')||''));
+        m.style.display = (!term || hay.includes(term)) ? '' : 'none';
+      });
+    });
+
+    // Open iframe in new tab
+    window.openIframeNewTab = function(btn){
+      const card = btn.closest('.card');
+      const iframe = card ? card.querySelector('iframe[data-newtab]') : null;
+      if(iframe && iframe.src) window.open(iframe.src, '_blank', 'noopener,noreferrer');
+    }
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
