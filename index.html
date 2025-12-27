@@ -397,12 +397,12 @@
 
       <div class="search" title="输入关键词过滤（仅前端过滤，不会提交到服务器）">
         <span class="tiny">🔎</span>
-        <input id="q" type="search" placeholder="搜索模块：例如 Bayes / HFACS / ArcGIS / Tableau ..." />
+        <input id="q" type="search" placeholder="Search" />
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <span class="chip" id="expandAll">展开所有文字</span>
-        <span class="chip" id="collapseAll">折叠所有文字</span>
+        <span class="chip" id="expandAll">Expand all text</span>
+        <span class="chip" id="collapseAll">Collapse all text</span>
       </div>
     </div>
   </div>
@@ -411,21 +411,20 @@
     <div class="grid">
 
       <!-- Sidebar -->
-      <aside class="side" aria-label="目录导航">
+      <aside class="side" aria-label="Table of contents">
         <div class="head">
           <div class="title">
-            <strong>目录导航</strong>
-            <span>点击跳转 · 自动高亮</span>
+            <strong>Table of contents</strong>
+            <span>Click to navigate · Auto highlight</span>
           </div>
-          <a class="btn" href="#top" style="padding:8px 10px;border-radius:12px;">⬆️ 顶部</a>
+          <a class="btn" href="#top" style="padding:8px 10px;border-radius:12px;">⬆️ Top</a>
         </div>
 
         <nav class="nav" id="nav">
-          <a href="#sec-dashboard"><span>📊 可视化看板</span><small>Tableau / ArcGIS</small></a>
-          <a href="#sec-research"><span>🧠 研究与方法</span><small>HFACS / BN / 模型</small></a>
-          <a href="#sec-datasets"><span>🗂️ 数据与资源</span><small>数据库 / 文档</small></a>
-          <a href="#sec-notes"><span>📝 长文字说明</span><small>仅此类可折叠</small></a>
-          <a href="#sec-about"><span>✨ 关于本站</span><small>模块添加方式</small></a>
+          <a href="#sec-dashboard"><span>📊 Dashboards</span><small>Tableau / ArcGIS</small></a>
+          <a href="#sec-research"><span>🧠 Research and methods</span><small>HFACS / BN / 模型</small></a>
+          <a href="#sec-datasets"><span>🗂️ Data and resources</span><small>数据库 / 文档</small></a>
+          <a href="#sec-about"><span>✨ About this site</span><small>模块添加方式</small></a>
         </nav>
       </aside>
 
